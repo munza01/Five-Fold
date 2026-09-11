@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#121213" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Fivefold" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Fivefold — a daily five-letter word puzzle." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <title>Fivefold</title>
+  <style>
+    :root{--bg:#121213;--panel:#1b1b1d;--text:#fff;--muted:#9ca3af;--border:#3a3a3c;--key:#818384;--correct:#538d4e;--present:#b59f3b;--absent:#3a3a3c;--accent:#6aaa64}
+    *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100%}
+    body{padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom)}
+    button{font:inherit}
+    .app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+    header{height:58px;border-bottom:1px solid #2b2b2d;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .brand{font-weight:800;letter-spacing:.16em;font-size:1.05rem}.sub{font-size:.72rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+    .modebar{display:flex;gap:6px}.modebar button,.ghost{border:1px solid #444;border-radius:10px;background:#1d1d1f;color:white;padding:8px 11px;min-height:38px}.modebar button.active{background:white;color:#111;border-color:white}
+    main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:12px}
+    #message{height:28px;font-weight:700;font-size:.9rem;text-align:center}
+    #board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:min(340px,88vw);margin:4px auto 18px}
+    .tile{aspect-ratio:1;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:clamp(1.5rem,8vw,2rem);font-weight:800;text-transform:uppercase;user-select:none}
+    .tile.filled{border-color:#565758}.tile.correct{background:var(--correct);border-color:var(--correct)}.tile.present{background:var(--present);border-color:var(--present)}.tile.absent{background:var(--absent);border-color:var(--absent)}
+    #keyboard{width:100%;margin-top:auto;padding:0 0 10px}.keyrow{display:flex;gap:5px;margin:0 0 6px}.key{flex:1;border:0;border-radius:5px;background:var(--key);color:#fff;font-weight:700;height:54px;min-width:0}.key.wide{flex:1.45;font-size:.74rem}.key.correct{background:var(--correct)}.key.present{background:var(--present)}.key.absent{background:var(--absent)}
+    .bottom{border-top:1px solid #2b2b2d;padding:12px 0 4px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.stats{display:flex;gap:16px}.stat{text-align:center}.stat b{display:block;font-size:1.15rem}.stat span{font-size:.7rem;color:var(--muted)}
+    dialog{border:0;border-radius:16px;background:#202022;color:white;width:min(92vw,420px);padding:20px}dialog::backdrop{background:#0009}.modal-actions{display:flex;justify-content:flex-end;margin-top:18px}.help{font-size:.95rem;line-height:1.45;color:#e5e7eb}.legend{display:flex;gap:6px;margin:12px 0}.legend .tile{width:46px;font-size:1.2rem}
+    @media(max-width:360px){.key{height:50px;font-size:.8rem}.modebar button{padding:7px 8px;font-size:.78rem}.brand{font-size:.95rem}}
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div><div class="brand">FIVEFOLD</div><div class="sub" id="modeLabel">Daily puzzle</div></div>
+    <div class="modebar"><button id="dailyBtn" class="active" type="button">Daily</button><button id="practiceBtn" type="button">Practice</button><button id="helpBtn" type="button">?</button></div>
+  </header>
+  <main>
+    <div id="message" aria-live="polite"></div>
+    <div id="board" aria-label="Word puzzle board"></div>
+    <div id="keyboard" aria-label="On-screen keyboard"></div>
+  </main>
+  <div class="bottom">
+    <div class="stats">
+      <div class="stat"><b id="played">0</b><span>Played</span></div>
+      <div class="stat"><b id="wins">0</b><span>Won</span></div>
+      <div class="stat"><b id="streak">0</b><span>Streak</span></div>
+      <div class="stat"><b id="best">0</b><span>Best</span></div>
+    </div>
+    <button class="ghost" id="newBtn" type="button">New practice</button>
+  </div>
+</div>
+<dialog id="helpDialog">
+  <h2 style="margin-top:0">How to play</h2>
+  <div class="help">Guess the five-letter word in six tries. Green means the letter is in the correct spot, gold means it appears elsewhere, and grey means it is not in the answer.</div>
+  <div class="legend"><div class="tile correct">A</div><div class="tile present">R</div><div class="tile absent">T</div></div>
+  <div class="help"><b>Daily</b> gives everyone the same puzzle for the date. <b>Practice</b> lets you play unlimited random puzzles. Your statistics are saved on this device.</div>
+  <div class="modal-actions"><button class="ghost" id="closeHelp" type="button">Close</button></div>
+</dialog>
+<script src="words.js"></script>
+<script>
+(() => {
+  const ANSWERS = window.FIVEFOLD_ANSWERS;
+  const ALLOWED = new Set(window.FIVEFOLD_ALLOWED);
+  const rows=6, cols=5;
+  const board=document.getElementById('board'), keyboard=document.getElementById('keyboard'), message=document.getElementById('message');
+  let mode='daily', answer='', guesses=[], row=0, col=0, ended=false, keyState={};
+  const priority={absent:1,present:2,correct:3};
+  const todayKey=()=>new Date().toISOString().slice(0,10);
+  const hashDate=(s)=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
+  const loadStats=()=>JSON.parse(localStorage.getItem('fivefold-stats')||'{"played":0,"wins":0,"streak":0,"best":0,"lastWinDate":""}');
+  const saveStats=s=>localStorage.setItem('fivefold-stats',JSON.stringify(s));
+  const stats=loadStats();
+  function updateStats(){played.textContent=stats.played;wins.textContent=stats.wins;streak.textContent=stats.streak;best.textContent=stats.best}
+  function dailyAnswer(){return ANSWERS[hashDate(todayKey())%ANSWERS.length]}
+  function randomAnswer(){return ANSWERS[Math.floor(Math.random()*ANSWERS.length)]}
+  function freshGame(){answer=mode==='daily'?dailyAnswer():randomAnswer();guesses=Array.from({length:rows},()=>Array(cols).fill(''));row=0;col=0;ended=false;keyState={};buildBoard();buildKeyboard();message.textContent='';document.getElementById('newBtn').style.display=mode==='practice'?'inline-block':'none';document.getElementById('modeLabel').textContent=mode==='daily'?'Daily puzzle':'Unlimited practice'}
+  function buildBoard(){board.innerHTML='';for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const d=document.createElement('div');d.className='tile';d.id=`t-${r}-${c}`;board.appendChild(d)}}
+  function makeKey(label,wide=false){const b=document.createElement('button');b.type='button';b.className='key'+(wide?' wide':'');b.textContent=label;b.dataset.key=label;b.addEventListener('click',()=>handle(label));return b}
+  function buildKeyboard(){keyboard.innerHTML='';['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'].forEach((letters,i)=>{const r=document.createElement('div');r.className='keyrow';if(i===2)r.appendChild(makeKey('ENTER',true));letters.split('').forEach(ch=>r.appendChild(makeKey(ch)));if(i===2)r.appendChild(makeKey('⌫',true));keyboard.appendChild(r)})}
+  function add(ch){if(ended||col>=cols)return;guesses[row][col]=ch;const t=document.getElementById(`t-${row}-${col}`);t.textContent=ch;t.classList.add('filled');col++}
+  function back(){if(ended||col===0)return;col--;guesses[row][col]='';const t=document.getElementById(`t-${row}-${col}`);t.textContent='';t.className='tile'}
+  function score(word){const out=Array(cols).fill('absent'), remain={};answer.split('').forEach((ch,i)=>{if(word[i]===ch)out[i]='correct';else remain[ch]=(remain[ch]||0)+1});word.split('').forEach((ch,i)=>{if(out[i]==='correct')return;if((remain[ch]||0)>0){out[i]='present';remain[ch]--}});return out}
+  function completeStats(win){stats.played++;if(win){stats.wins++;stats.streak++;stats.best=Math.max(stats.best,stats.streak);stats.lastWinDate=todayKey()}else{stats.streak=0}saveStats(stats);updateStats()}
+  function submit(){if(ended)return;if(col<cols){message.textContent='Enter five letters';return}const word=guesses[row].join('');if(!ALLOWED.has(word)){message.textContent='Not in word list';return}const result=score(word);result.forEach((state,i)=>{document.getElementById(`t-${row}-${i}`).classList.add(state);const ch=word[i];if(!keyState[ch]||priority[state]>priority[keyState[ch]])keyState[ch]=state});Object.entries(keyState).forEach(([ch,state])=>{const b=keyboard.querySelector(`[data-key="${ch}"]`);if(b){b.classList.remove('correct','present','absent');b.classList.add(state)}});if(word===answer){ended=true;message.textContent=`Solved in ${row+1}!`;completeStats(true);return}row++;col=0;if(row>=rows){ended=true;message.textContent=`The word was ${answer}`;completeStats(false)}else message.textContent=''}
+  function handle(k){if(k==='ENTER')submit();else if(k==='⌫')back();else if(/^[A-Z]$/.test(k))add(k)}
+  document.addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey)return;if(e.key==='Enter')handle('ENTER');else if(e.key==='Backspace')handle('⌫');else if(/^[a-zA-Z]$/.test(e.key))handle(e.key.toUpperCase())});
+  dailyBtn.addEventListener('click',()=>{mode='daily';dailyBtn.classList.add('active');practiceBtn.classList.remove('active');freshGame()});
+  practiceBtn.addEventListener('click',()=>{mode='practice';practiceBtn.classList.add('active');dailyBtn.classList.remove('active');freshGame()});
+  newBtn.addEventListener('click',()=>{if(mode!=='practice'){mode='practice';practiceBtn.classList.add('active');dailyBtn.classList.remove('active')}freshGame()});
+  helpBtn.addEventListener('click',()=>helpDialog.showModal());closeHelp.addEventListener('click',()=>helpDialog.close());
+  updateStats();freshGame();
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
+})();
+</script>
+</body>
+</html>
