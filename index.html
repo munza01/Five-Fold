@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#121213" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -35,6 +35,157 @@
 <style>
 html, body, button, #board, #keyboard { touch-action: manipulation; }
 </style>
+
+<style id="fivefold-ios-nozoom">
+html, body, body * {
+  touch-action: manipulation !important;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+</style>
+
+
+<style id="fivefold-fit-screen">
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body {
+  padding:
+    env(safe-area-inset-top)
+    12px
+    env(safe-area-inset-bottom);
+}
+
+.app {
+  height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  min-height: 0 !important;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+header {
+  height: 52px;
+  min-height: 52px;
+  flex: 0 0 52px;
+}
+
+main {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 6px;
+  overflow: hidden;
+}
+
+#message {
+  height: 24px;
+  min-height: 24px;
+  font-size: .88rem;
+}
+
+#board {
+  width: min(320px, 84vw, 36dvh);
+  margin: 2px auto 8px;
+  gap: 5px;
+}
+
+.tile {
+  border-width: 2px;
+  font-size: clamp(1.35rem, 6.5vw, 1.9rem);
+}
+
+#keyboard {
+  margin-top: auto;
+  padding: 0 0 4px;
+  flex: 0 0 auto;
+}
+
+.keyrow {
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.key {
+  height: clamp(42px, 5.4dvh, 50px);
+  font-size: clamp(.78rem, 3.3vw, 1rem);
+}
+
+.key.wide {
+  font-size: clamp(.62rem, 2.7vw, .74rem);
+}
+
+.bottom {
+  flex: 0 0 auto;
+  min-height: 54px;
+  padding: 7px 0 2px;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.stats {
+  gap: 14px;
+}
+
+.stat b {
+  font-size: 1rem;
+}
+
+.stat span {
+  font-size: .64rem;
+}
+
+@media (max-height: 760px) {
+  header {
+    height: 46px;
+    min-height: 46px;
+    flex-basis: 46px;
+  }
+
+  .brand { font-size: .95rem; }
+  .sub { font-size: .64rem; }
+
+  .modebar button, .ghost {
+    min-height: 34px;
+    padding: 6px 9px;
+  }
+
+  main { padding-top: 3px; }
+
+  #message {
+    height: 21px;
+    min-height: 21px;
+    font-size: .8rem;
+  }
+
+  #board {
+    width: min(294px, 80vw, 35dvh);
+    margin-bottom: 5px;
+    gap: 4px;
+  }
+
+  .key {
+    height: 40px;
+  }
+
+  .keyrow {
+    margin-bottom: 4px;
+  }
+
+  .bottom {
+    min-height: 48px;
+    padding-top: 5px;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="app" id="app">
@@ -100,5 +251,32 @@ html, body, button, #board, #keyboard { touch-action: manipulation; }
   if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
 })();
 </script>
+
+<script id="fivefold-ios-nozoom-js">
+(function () {
+  let lastTouchEnd = 0;
+
+  document.addEventListener('touchend', function (event) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 350) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+
+  document.addEventListener('gesturestart', function (event) {
+    event.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('gesturechange', function (event) {
+    event.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('gestureend', function (event) {
+    event.preventDefault();
+  }, { passive: false });
+})();
+</script>
+
 </body>
 </html>

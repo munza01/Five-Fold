@@ -1,4 +1,4 @@
-const CACHE='fivefold-v3';
+const CACHE='fivefold-v4';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./words.js','./icon-180.png','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',e=>{
@@ -17,8 +17,11 @@ self.addEventListener('activate',e=>{
 self.addEventListener('fetch',e=>{
   const url=new URL(e.request.url);
 
-  // Prefer a fresh copy of the word list when online.
-  if(url.origin===self.location.origin && url.pathname.endsWith('/words.js')){
+  // Always prefer fresh app shell and word list when online.
+  if(url.origin===self.location.origin &&
+     (url.pathname.endsWith('/index.html') ||
+      url.pathname.endsWith('/Five-Fold/') ||
+      url.pathname.endsWith('/words.js'))){
     e.respondWith(
       fetch(e.request)
         .then(r=>{
