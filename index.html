@@ -81,28 +81,36 @@ header {
 main {
   flex: 1 1 auto;
   min-height: 0;
-  padding-top: 6px;
+  padding-top: 5px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #message {
-  height: 24px;
-  min-height: 24px;
-  font-size: .88rem;
+  height: 25px;
+  min-height: 25px;
+  font-size: .9rem;
+  flex: 0 0 25px;
 }
 
+/* Use the available width for the game board instead of leaving empty space. */
 #board {
-  width: min(320px, 84vw, 36dvh);
-  margin: 2px auto 8px;
+  width: min(354px, 94vw);
+  max-width: 100%;
+  margin: 3px auto 8px;
   gap: 5px;
+  flex: 0 0 auto;
 }
 
 .tile {
   border-width: 2px;
-  font-size: clamp(1.35rem, 6.5vw, 1.9rem);
+  font-size: clamp(1.55rem, 7.4vw, 2.15rem);
 }
 
 #keyboard {
+  width: 100%;
   margin-top: auto;
   padding: 0 0 4px;
   flex: 0 0 auto;
@@ -114,18 +122,18 @@ main {
 }
 
 .key {
-  height: clamp(42px, 5.4dvh, 50px);
-  font-size: clamp(.78rem, 3.3vw, 1rem);
+  height: 48px;
+  font-size: clamp(.8rem, 3.4vw, 1rem);
 }
 
 .key.wide {
-  font-size: clamp(.62rem, 2.7vw, .74rem);
+  font-size: clamp(.62rem, 2.7vw, .75rem);
 }
 
 .bottom {
   flex: 0 0 auto;
-  min-height: 54px;
-  padding: 7px 0 2px;
+  min-height: 52px;
+  padding: 6px 0 2px;
   gap: 8px;
   flex-wrap: nowrap;
 }
@@ -142,6 +150,7 @@ main {
   font-size: .64rem;
 }
 
+/* Shorter iPhones: still fill the screen, but scale the board only as much as needed. */
 @media (max-height: 760px) {
   header {
     height: 46px;
@@ -157,17 +166,18 @@ main {
     padding: 6px 9px;
   }
 
-  main { padding-top: 3px; }
+  main { padding-top: 2px; }
 
   #message {
     height: 21px;
     min-height: 21px;
+    flex-basis: 21px;
     font-size: .8rem;
   }
 
   #board {
-    width: min(294px, 80vw, 35dvh);
-    margin-bottom: 5px;
+    width: min(322px, 90vw);
+    margin: 2px auto 5px;
     gap: 4px;
   }
 
@@ -180,8 +190,8 @@ main {
   }
 
   .bottom {
-    min-height: 48px;
-    padding-top: 5px;
+    min-height: 46px;
+    padding-top: 4px;
   }
 }
 </style>
